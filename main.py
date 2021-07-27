@@ -1,6 +1,6 @@
 import configparser
 from TwitterAPI import TwitterAPI
-import json
+import json, time
 
 parser = configparser.ConfigParser()
 parser.read("Conf/config.ini")
@@ -24,6 +24,18 @@ def read_message():
     text = f.read()
     f.close()
     return text
+
+
+def read_usernames_ids():
+    usernames = {}
+    f = open("Data/userids.txt", "r", encoding="utf-8")
+    line = f.readline().replace("\n", "")
+    while line != "" and line != None:
+        data = line.split("||")
+        usernames[data[0]] = data[-1]
+        line = f.readline().replace("\n", "")
+    f.close()
+    return usernames
 
 
 def sendDM(user_id, message_text):
@@ -53,8 +65,10 @@ if __name__ == "__main__":
     ACCESS_TOKEN_SECRETE = general_conf["access_token_secrete"].decode("utf-8")
 
     api = TwitterAPI(API_KEY, API_KEY_SECRETE, ACCESS_TOKEN, ACCESS_TOKEN_SECRETE)
-
-    user_id = 1331709162364039168
+    username_ids = read_usernames_ids()
     message_text = read_message()
-    response = sendDM(user_id, message_text)
-    print('SUCCESS' if response.status_code == 200 else 'PROBLEM: ' + response.text)
+
+    for username in username_ids:
+        response = sendDM(username_ids[username], message_text)
+        print(username + ' => SUCCESS' if response.status_code == 200 else username + ' => PROBLEM: ' + response.text)
+        time.sleep(100)
